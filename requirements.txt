@@ -1,0 +1,4 @@
+Twisted>=11.0.0
+biplist==0.4
+pyOpenSSL==0.13
+-e git://github.com/rem/python-protobuf.git@v2.4.1#egg=protobuf

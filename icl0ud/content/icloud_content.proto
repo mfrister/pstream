@@ -1,0 +1,110 @@
+// compile: protoc --python_out=. icloud_content.proto
+
+package ICloudContent;
+
+message ContentMetadata {
+    optional bytes bytes21 = 1; /* checksum, probably SHA-1 */
+    optional bytes bytes17 = 2; /* AES encryption key */
+    optional uint64 size = 3;
+}
+
+message AuthorizeRequest {
+    message AuthorizeRequestBody {
+        required bytes checksum = 1;
+        required string contentAuthorizeToken = 2;
+        optional ContentMetadata metadata = 3;
+    }
+    repeated AuthorizeRequestBody body = 1;
+}
+
+message RequestParameters {
+    optional string host = 1; /* example: eu-irl-00001.s3.amazonaws.com */
+    optional uint32 port = 2; /* 443 */
+    optional string method = 3; /* example: GET */
+    optional string pathAndQuery = 4;
+    optional string protocol = 5; /* example: HTTP */
+    optional string protocolVersion = 6; /* example: 1.1 */
+    optional string scheme = 7; /* example: https */
+    message HTTPHeader {
+        required string name = 1; /* example: x-amz-date */
+        required string value = 2; /* example: Sat, 08 Oct 2011 11:09:17 GMT */
+    }
+    repeated HTTPHeader httpHeaders= 8;
+}
+
+message AuthorizePutResponse {
+    message AuthorizePutResponseBody {
+        optional string storageToken = 1;
+        optional RequestParameters requestParameters = 2;
+        repeated bytes bytes21 = 3;
+        optional string contentReportingToken = 4;
+    }
+    optional AuthorizePutResponseBody body = 1;
+    optional uint32 c = 3; // example: 2
+}
+
+message AuthorizeGetResponse {
+    message AuthorizeGetResponseBody {
+        message AuthorizeGetAsset {
+            required RequestParameters requestParameters = 1;
+            required ContentMetadata metadata = 2;
+            required string storageToken = 3;
+            required string contentReportingToken = 4;
+        }
+        repeated AuthorizeGetAsset assets = 1;
+        message ChecksumAndNumbers {
+            required bytes checksum = 1;
+            message ChecksumNumbers {
+                required uint32 assetNumber = 1;
+                required uint32 b = 2;
+            }
+            required ChecksumNumbers numbers = 2;
+        }
+        repeated ChecksumAndNumbers checksumAndNumbers = 2;
+    }
+    required AuthorizeGetResponseBody body = 1;
+    optional int32 unknown1 = 3; // not found in recent capture
+    required int32 unknown2 = 4; // example: 2
+}
+
+message NameValuePair {
+    required string name = 1;
+    required string value = 2;
+}
+
+// getComplete, putComplete
+message MethodCompletionInfoList {
+    message MethodCompletionInfo {
+        required string url = 1;
+        required uint32 response_status_code = 2; // example: 200
+        optional string response_status_line = 3;
+        repeated NameValuePair vendor_response_headers = 4;
+        optional bytes response_body = 5;
+        message ErrorResponse {
+            required string domain = 1;
+            required int32 error_code = 2;
+            optional string error_description = 3;
+            repeated ErrorResponse underlying_errors = 4;
+            repeated NameValuePair name_value_pair = 5;
+        }
+        optional ErrorResponse error = 6;
+        optional bytes client_computed_md5 = 7; // length 16
+        repeated NameValuePair vendor_nv_pairs = 8;
+        repeated NameValuePair client_nv_pairs = 9;
+        required string storage_container_authorization_token = 10;
+        optional uint32 num_chunks_locally_found = 11;
+        optional bool all_chunks_locally_found = 12;
+    }
+    repeated MethodCompletionInfo method_completion_info = 1;
+}
+
+message StorageContainerErrorList {
+    // repeated StorageContainerError storage_container_error = 1;
+    // repeated FileError file_error = 2;
+    message FileSuccess {
+        required bytes file_checksum = 1;
+        required int32 success_code = 2;
+        optional string return_receipt = 3;
+    }
+    repeated FileSuccess file_success = 3;
+}
