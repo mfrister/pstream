@@ -59,7 +59,10 @@ class CacheDict(dict):
 
     def __setitem__(self, name, value, timeout=None):
         if len(self._stack) >= self._maxsize:
-            self.__delitem__(self._stack[0])
+            try:
+                self.__delitem__(self._stack[0])
+            except KeyError:  # ignore if item has already been deleted
+                pass
             del self._stack[0]
         if timeout is None:
             timeout = self._timeout
